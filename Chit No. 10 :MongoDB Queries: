@@ -162,15 +162,3 @@ db.Employees.find({ "$and": [{ "Salary": { "$gte": 60000 } }, { "Salary": { "$lt
 ```javascript
 db.Employees.find({ "Position": { "$ne": "Developer" } });
 ```
-
-## Summary
-
-This guide covers the following MongoDB CRUD operations:
-
-1. **Create**: Inserting single or multiple documents into a collection.
-2. **Read**: Querying documents with specific conditions, selecting fields, and using logical operators.
-3. **Update**: Modifying existing documents with the `updateOne`, `updateMany`, and `save` methods.
-4. **Delete**: Removing documents using the `deleteOne` and `deleteMany` methods.
-5. **Logical Operators**: Using operators like `$or`, `$and`, and `$ne` to query with complex conditions.
-
-By mastering these CRUD operations and logical operators, you can effectively manage and manipulate your data in MongoDB, whether through the MongoDB shell or Python with `pymongo`.
