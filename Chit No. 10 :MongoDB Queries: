@@ -1,0 +1,176 @@
+# MongoDB CRUD Operations Guide
+
+This guide provides an overview of MongoDB **Create**, **Read**, **Update**, and **Delete** (CRUD) operations using the MongoDB shell. It also demonstrates the use of the `save` method and logical operators to manage data in a MongoDB collection. Additionally, Python users can leverage the `pymongo` library for performing CRUD operations programmatically.
+
+## Prerequisites
+
+1. **MongoDB Server**: Ensure MongoDB is installed and running.
+2. **Python and PyMongo (Optional)**: If using Python, install the `pymongo` library:
+
+   ```bash
+   pip install pymongo
+   ```
+
+## MongoDB Collection Setup
+
+We will work with a sample collection called `Employees`. Each document in this collection contains the following fields:
+
+- `EmpID`: Employee ID
+- `Name`: Employee's name
+- `Position`: Job position
+- `Salary`: Employee's salary
+
+### Sample Data
+
+```javascript
+db.Employees.insertMany([
+    { "EmpID": 101, "Name": "John Doe", "Position": "Developer", "Salary": 70000 },
+    { "EmpID": 102, "Name": "Jane Smith", "Position": "Manager", "Salary": 90000 },
+    { "EmpID": 103, "Name": "Alice Brown", "Position": "Analyst", "Salary": 50000 },
+    { "EmpID": 104, "Name": "Bob White", "Position": "Developer", "Salary": 60000 }
+]);
+```
+
+## 1. **Create Operation (Insert Documents)**
+
+MongoDB provides methods to insert single or multiple documents into a collection.
+
+### Insert a Single Document
+
+```javascript
+db.Employees.insertOne({
+    "EmpID": 101,
+    "Name": "John Doe",
+    "Position": "Developer",
+    "Salary": 70000
+});
+```
+
+### Insert Multiple Documents
+
+```javascript
+db.Employees.insertMany([
+    { "EmpID": 102, "Name": "Jane Smith", "Position": "Manager", "Salary": 90000 },
+    { "EmpID": 103, "Name": "Alice Brown", "Position": "Analyst", "Salary": 50000 },
+    { "EmpID": 104, "Name": "Bob White", "Position": "Developer", "Salary": 60000 }
+]);
+```
+
+## 2. **Read Operation (Query Documents)**
+
+MongoDB provides flexible query capabilities to retrieve documents from a collection.
+
+### Find All Documents
+
+```javascript
+db.Employees.find();
+```
+
+### Find Documents with Specific Conditions
+
+#### Salary Greater Than 60000
+
+```javascript
+db.Employees.find({ "Salary": { "$gt": 60000 } });
+```
+
+#### Employees who are Managers or Analysts (using `$or` logical operator)
+
+```javascript
+db.Employees.find({ "$or": [{ "Position": "Manager" }, { "Position": "Analyst" }] });
+```
+
+### Find Specific Fields Only
+
+#### Display Only `Name` and `Position` Fields
+
+```javascript
+db.Employees.find({}, { "Name": 1, "Position": 1, "_id": 0 });
+```
+
+## 3. **Update Operation**
+
+MongoDB allows you to update one or more documents using update operators like `$set` and `$mul`.
+
+### Update a Single Document
+
+#### Update Salary for Employee with `EmpID` 101
+
+```javascript
+db.Employees.updateOne({ "EmpID": 101 }, { "$set": { "Salary": 75000 } });
+```
+
+### Update Multiple Documents
+
+#### Increase Salary by 10% for All Employees with the Position `Developer`
+
+```javascript
+db.Employees.updateMany(
+    { "Position": "Developer" },
+    { "$mul": { "Salary": 1.10 } }
+);
+```
+
+### Using the `save` Method
+
+The `save` method is used to either replace an existing document if `_id` is specified or insert a new document if `_id` is missing.
+
+#### Example of Using `save`:
+
+```javascript
+db.Employees.save({
+    "_id": ObjectId("..."),  // Use the actual ID of the document
+    "EmpID": 101,
+    "Name": "John Doe",
+    "Position": "Senior Developer",
+    "Salary": 75000
+});
+```
+
+## 4. **Delete Operation**
+
+MongoDB provides methods to delete one or more documents from a collection.
+
+### Delete a Single Document
+
+#### Remove Employee with `EmpID` 104
+
+```javascript
+db.Employees.deleteOne({ "EmpID": 104 });
+```
+
+### Delete Multiple Documents
+
+#### Remove Employees with Salary Less Than 50000
+
+```javascript
+db.Employees.deleteMany({ "Salary": { "$lt": 50000 } });
+```
+
+## 5. **MongoDB Logical Operators**
+
+MongoDB provides several logical operators that help in querying documents with specific conditions.
+
+### Find Employees with Salary Between 60000 and 90000 (using `$and`)
+
+```javascript
+db.Employees.find({ "$and": [{ "Salary": { "$gte": 60000 } }, { "Salary": { "$lte": 90000 } }] });
+```
+
+### Find Employees with a Position That is Not `Developer` (using `$ne`)
+
+```javascript
+db.Employees.find({ "Position": { "$ne": "Developer" } });
+```
+
+## Summary
+
+This guide covers the following MongoDB CRUD operations:
+
+1. **Create**: Inserting single or multiple documents into a collection.
+2. **Read**: Querying documents with specific conditions, selecting fields, and using logical operators.
+3. **Update**: Modifying existing documents with the `updateOne`, `updateMany`, and `save` methods.
+4. **Delete**: Removing documents using the `deleteOne` and `deleteMany` methods.
+5. **Logical Operators**: Using operators like `$or`, `$and`, and `$ne` to query with complex conditions.
+
+By mastering these CRUD operations and logical operators, you can effectively manage and manipulate your data in MongoDB, whether through the MongoDB shell or Python with `pymongo`.
