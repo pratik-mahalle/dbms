@@ -1,62 +1,97 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MongoDB Frontend</title>
+</head>
+<body>
+  <h1>Item Management</h1>
+  
+  <form id="itemForm">
+    <input type="text" id="name" placeholder="Name" required />
+    <input type="text" id="description" placeholder="Description" required />
+    <button type="submit" id="submitButton">Add Item</button>
+  </form>
+  
+  <h2>Items</h2>
+  <ul id="itemList"></ul>
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+  <script>
+    const API_URL = 'http://localhost:5000/api/items';
+    let editingItemId = null;
 
-// MongoDB connection
-mongoose.connect('mongodb://localhost:27017/', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch((error) => console.error('MongoDB connection error:', error));
+    async function fetchItems() {
+      const response = await fetch(API_URL);
+      const items = await response.json();
+      const itemList = document.getElementById('itemList');
+      itemList.innerHTML = '';
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.name}: ${item.description}`;
 
-// Define a schema and model
-const ItemSchema = new mongoose.Schema({
-  name: String,
-  description: String,
-});
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.onclick = () => startEditItem(item);
 
-const Item = mongoose.model('Item', ItemSchema);
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.onclick = () => deleteItem(item._id);
 
-// CRUD Routes
+        li.appendChild(editButton);
+        li.appendChild(deleteButton);
+        itemList.appendChild(li);
+      });
+    }
 
-// Get all items
-app.get('/api/items', async (req, res) => {
-  const items = await Item.find();
-  res.json(items);
-});
+    async function addItem(event) {
+      event.preventDefault();
+      const name = document.getElementById('name').value;
+      const description = document.getElementById('description').value;
 
-// Get item by ID
-app.get('/api/items/:id', async (req, res) => {
-  const item = await Item.findById(req.params.id);
-  res.json(item);
-});
+      const itemData = { name, description };
+      let response;
 
-// Create new item
-app.post('/api/items', async (req, res) => {
-  const newItem = new Item(req.body);
-  await newItem.save();
-  res.json(newItem);
-});
+      if (editingItemId) {
+        // Update item
+        response = await fetch(`${API_URL}/${editingItemId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(itemData),
+        });
+        editingItemId = null;
+        document.getElementById('submitButton').textContent = 'Add Item';
+      } else {
+        // Create new item
+        response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(itemData),
+        });
+      }
 
-// Update an item
-app.put('/api/items/:id', async (req, res) => {
-  const updatedItem = await Item.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(updatedItem);
-});
+      if (response.ok) {
+        document.getElementById('itemForm').reset();
+        fetchItems();
+      }
+    }
 
-// Delete an item
-app.delete('/api/items/:id', async (req, res) => {
-  await Item.findByIdAndDelete(req.params.id);
-  res.json({ message: 'Item deleted' });
-});
+    function startEditItem(item) {
+      document.getElementById('name').value = item.name;
+      document.getElementById('description').value = item.description;
+      editingItemId = item._id;
+      document.getElementById('submitButton').textContent = 'Update Item';
+    }
 
-// Start server
-const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(Server running on http://localhost:${PORT});
-});
+    async function deleteItem(id) {
+      const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+      if (response.ok) {
+        fetchItems();
+      }
+    }
+
+    document.getElementById('itemForm').addEventListener('submit', addItem);
+    fetchItems();
+  </script>
+</body>
+</html>
