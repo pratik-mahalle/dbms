@@ -1,4 +1,4 @@
-# MongoDB Map-Reduce Example: Word Count
+ongoDB Map-Reduce Example: Word Count
 
 ## Overview
 This example demonstrates how to use the `mapReduce` function in MongoDB to count the frequency of each word in a collection of documents. The collection `texts` contains documents with a `text` field, and the task is to count how many times each word appears across all documents in the collection.
@@ -11,18 +11,13 @@ The first step is to create a collection called `texts` and insert sample docume
 
 ```javascript
 db.texts.insertMany([
-  { text: "hello world" },
-  { text: "hello from MongoDB" },
-  { text: "map reduce in MongoDB" }
+{ "product": "Laptop", "quantity": 2, "price": 1000 }
+{ "product": "Laptop", "quantity": 1, "price": 1000 }
+{ "product": "Phone", "quantity": 3, "price": 500 }
+{ "product": "Tablet", "quantity": 1, "price": 700 }
+{ "product": "Phone", "quantity": 2, "price": 500 }
+
 ]);
-```
-
-This creates a collection named `texts` with the following documents:
-
-```json
-{ "text": "hello world" }
-{ "text": "hello from MongoDB" }
-{ "text": "map reduce in MongoDB" }
 ```
 
 ### 2. Write Map and Reduce Functions
@@ -49,23 +44,24 @@ var mapFunction = function() {
 The reduce function takes the emitted key-value pairs from the map function and aggregates them by summing the values (word counts).
 
 ```javascript
-var reduceFunction = function(key, values) {
-  return Array.sum(values); // Sum all the counts for each word
+// Map function to emit product and calculated sales
+var mapFunction = function() {
+    emit(this.product, this.quantity * this.price);
 };
-```
 
-- **Explanation**: This function sums all the `1`s emitted for each word, resulting in the total count of each word.
-
-### 3. Perform the Map-Reduce Operation
-
-Now that you have the map and reduce functions, you can use the `mapReduce` function to process the documents in the `texts` collection. The result will be stored in a new collection called `word_count`.
-
-```javascript
-db.texts.mapReduce(
-  mapFunction,           // The map function
-  reduceFunction,        // The reduce function
-  { out: "word_count" }   // Output the result to a new collection called 'word_count'
+// Reduce function to sum sales by product
+var reduceFunction = function(key, values) {
+    return Array.sum(values);
+};
+//Run mapReduce command
+db.sales.mapReduce(
+    mapFunction,
+    reduceFunction,
+    {
+        out: "total_sales_per_product" // The output collection
+    }
 );
+
 ```
 
 - **Explanation**: This command applies the `mapFunction` to each document in the `texts` collection, reduces the counts using the `reduceFunction`, and stores the results in a new collection called `word_count`.
@@ -75,29 +71,5 @@ db.texts.mapReduce(
 After the Map-Reduce operation completes, the results will be stored in the `word_count` collection. You can query this collection to view the frequency of each word.
 
 ```javascript
-db.word_count.find();
+db.-----.find();
 ```
-
-- **Expected Output**:
-
-```json
-{ "_id" : "hello", "value" : 2 }
-{ "_id" : "world", "value" : 1 }
-{ "_id" : "from", "value" : 1 }
-{ "_id" : "MongoDB", "value" : 2 }
-{ "_id" : "map", "value" : 1 }
-{ "_id" : "reduce", "value" : 1 }
-{ "_id" : "in", "value" : 1 }
-```
-
-- **Explanation**: Each document in the `word_count` collection contains the word (as `_id`) and the total count of occurrences (as `value`). For example, the word "hello" appears 2 times in the `texts` collection, and "MongoDB" also appears 2 times.
-
-## Key Concepts
-
-- **Map Function**: Splits text into words and emits each word with a count of 1.
-- **Reduce Function**: Aggregates the counts for each word by summing them up.
-- **Map-Reduce**: A powerful tool in MongoDB to perform aggregation operations efficiently.
-
-## Conclusion
-
-This example shows how to use the `mapReduce` function in MongoDB to count word frequencies in a collection. This method allows you to process and aggregate data efficiently, especially when dealing with large datasets.
